@@ -74,6 +74,9 @@ export default function Home() {
       apartment.description.toLowerCase().includes(searchText)
     );
   });
+
+
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md mb-4 flex">
@@ -99,19 +102,31 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 justify-items-center px-4 py-4">
           {filteredApartments.map(apartment => (
             <Link key={apartment.id} href={`/pages/apartment/${apartment.id}`} passHref>
-              <div className="w-full max-w-xs bg-white shadow-lg rounded-lg overflow-hidden mb-6 mx-2">
-                {apartment.rooms.length > 0 ? (
+              <div className="w-full max-w-xs bg-white shadow-lg rounded-lg overflow-hidden mb-6 mx-2" style={{width:"250px"}}>
+                {apartment.rooms.length > 1 ? (
                   <Slider {...settings}>
                     {apartment.rooms.map((room) => (
                       <div key={room.id} className="carousel-item">
-                        <img
-                          className="w-full h-48 object-cover"
-                          src={room.image_url}
-                          alt={room.name}
-                        />
+                        <div className="w-full h-48 overflow-hidden">
+                          <img
+                            className="w-full h-full object-cover"
+                            src={room.image_url}
+                            alt={room.name}
+                          />
+                        </div>
                       </div>
                     ))}
                   </Slider>
+                ) : apartment.rooms.length === 1 ? (
+                  <div className="carousel-item">
+                    <div className="w-full h-48 overflow-hidden">
+                      <img
+                        className="w-full h-full object-cover"
+                        src={apartment.rooms[0].image_url}
+                        alt={apartment.rooms[0].name}
+                      />
+                    </div>
+                  </div>
                 ) : (
                   <div className="p-4">
                     <p className="text-gray-500">No hay habitaciones disponibles</p>

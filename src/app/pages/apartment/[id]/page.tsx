@@ -14,23 +14,24 @@ interface Apartment {
   location: string;
   price: number;
   description: string;
+  rooms: Room[];
 }
 
 interface Room {
   id: number;
   created_at: string;
   name: string;
-  location: string;
-  price: number;
-  description: string;
+  size: number;
+  equipment: string;
   image_url: string;
+  aparment_id: number;
 }
 
 export default function ApartmentPage({ params }: { params: { id: string } }) {
   const [apartments, setApartments] = useState<Apartment[] | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-
+  
   const settings = {
     dots: true,
     infinite: true,
@@ -41,26 +42,26 @@ export default function ApartmentPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     const fetchApartments = async () => {
-      setIsLoading(true);
       try {
         const response = await getApartment(params.id);
+        const apartments = response as Apartment[];
         const res = await getRoom(params.id);
-        setApartments(response);
-        if (Array.isArray(res)) {
-          setRooms(res);
-        } else {
-          setRooms([]);
-        }
-        console.log(res);
+        const rooms = res as Room[];
+        const apartmentsWithRooms = apartments.map(apartment => ({
+          ...apartment,
+          rooms: rooms.filter(room => room.aparment_id === apartment.id),
+        }));
+
+        setApartments(apartmentsWithRooms);
+        setIsLoading(false);
       } catch (error) {
         console.error('Error al obtener apartamentos:', error);
-      } finally {
         setIsLoading(false);
       }
     };
 
     fetchApartments();
-  }, [params.id]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
@@ -73,17 +74,31 @@ export default function ApartmentPage({ params }: { params: { id: string } }) {
         <div className="flex flex-col items-center">
           {apartments && apartments.map((apartment) => (
             <div key={apartment.id} className="max-w-md mx-auto bg-white shadow-md rounded-lg overflow-hidden mb-4">
-              <Slider {...settings}>
-                {rooms.map((room) => (
-                  <div key={room.id} className="carousel-item">
-                    <img
-                      className="w-full h-64 object-cover"
-                      src={room.image_url}
-                      alt={room.name}
-                    />
-                  </div>
-                ))}
-              </Slider>
+              {apartment.rooms?.length > 1 ? (
+                <Slider {...settings}>
+                  {apartment.rooms.map((room) => (
+                    <div key={room.id} className="carousel-item">
+                      <img
+                        className="w-full h-64 object-cover"
+                        src={room.image_url}
+                        alt={room.name}
+                      />
+                    </div>
+                  ))}
+                </Slider>
+              ) : apartment.rooms?.length === 1 ? (
+                <div className="carousel-item">
+                  <img
+                    className="w-full h-64 object-cover"
+                    src={apartment.rooms[0].image_url}
+                    alt={apartment.rooms[0].name}
+                  />
+                </div>
+              ) : (
+                <div className="p-4">
+                  <p className="text-gray-500">No hay habitaciones disponibles</p>
+                </div>
+              )}
               <div className="p-4">
                 <h1 className="text-2xl font-bold mb-2 text-black">{apartment.name}</h1>
                 <p className="text-gray-600 mb-4 text-black">{apartment.description}</p>
